@@ -4,7 +4,8 @@ import { get_message } from '../helpers/messages.js';
 
 export const getSelections = async (req, res) => {
     try {
-        const selections = await Selection.find();
+        const query = req.query; // Simple filtering by query params e.g. ?category=Wedding
+        const selections = await Selection.find(query);
         RESPONSE.success(res, 2001, selections);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);

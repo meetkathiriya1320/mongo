@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { RESPONSE } from '../helpers/response.js';
 import { AUTH_MESSAGES } from '../helpers/messages.js';
-import RESPONSE from '../helpers/response.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -25,5 +24,13 @@ export const authenticate = async (req, res, next) => {
         next();
     } catch (error) {
         RESPONSE.error(res, AUTH_MESSAGES.INVALID_TOKEN, 401);
+    }
+};
+
+export const authorizeAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        RESPONSE.error(res, 403, 'Access denied. Admin rights required.');
     }
 };
