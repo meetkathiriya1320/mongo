@@ -13,6 +13,8 @@ const selectionOrderSchema = new mongoose.Schema({
     deliver_date: { type: Date },
     receive_date: { type: Date },
     status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed', 'delivered', 'received'], default: 'pending' },
+    payment_status: { type: String, enum: ['pending', 'done'], default: 'pending' },
+    deposit_status: { type: String, enum: ['pending', 'received', 'returned'], default: 'pending' },
 }, { timestamps: true });
 
 const SelectionOrder = mongoose.model('SelectionOrder', selectionOrderSchema);

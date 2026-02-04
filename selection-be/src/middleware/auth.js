@@ -31,6 +31,6 @@ export const authorizeAdmin = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
         next();
     } else {
-        RESPONSE.error(res, 403, 'Access denied. Admin rights required.');
+        RESPONSE.error(res, 4003, 403, 'Access denied. Admin rights required.');
     }
 };

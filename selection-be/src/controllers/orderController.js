@@ -63,9 +63,26 @@ export const getOrderDetails = async (req, res) => {
         const order = await Order.findById(id).populate('user_id', 'name email');
         if (!order) return RESPONSE.error(res, 404, "Order not found");
 
+        // Security Check: Only Admin or Owner can view
+        if (req.user.role !== 'admin' && order.user_id._id.toString() !== req.user._id.toString()) {
+            return RESPONSE.error(res, 4003, 403, "Access denied");
+        }
+
         const items = await SelectionOrder.find({ order_id: id }).populate('selection_id');
 
         RESPONSE.success(res, 200, { order, items });
+    } catch (error) {
+        RESPONSE.error(res, 9999, 500, error);
+    }
+};
+
+export const getUserOrders = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const orders = await Order.find({ user_id: userId })
+            .sort({ createdAt: -1 }); // Newest first
+
+        RESPONSE.success(res, 200, orders);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
     }

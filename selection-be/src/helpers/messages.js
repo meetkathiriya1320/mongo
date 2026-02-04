@@ -33,6 +33,9 @@ const MESSAGES = {
     // Selection Details (2200-2299)
     2201: 'Selection details fetched successfully',
     2202: 'Selection details created successfully',
+
+    // Authorization
+    4003: 'Access denied. Admin rights required.',
 };
 
 export const get_message = (code) => {

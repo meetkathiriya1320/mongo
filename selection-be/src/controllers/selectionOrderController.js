@@ -90,20 +90,43 @@ export const checkAvailability = async (req, res) => {
 
 export const updateStatus = async (req, res) => {
     try {
-        const { status } = req.body;
-        const validStatuses = ['pending', 'confirmed', 'delivered', 'received', 'cancelled'];
+        const { status, payment_status, deposit_status } = req.body;
 
-        if (!validStatuses.includes(status)) {
-            return RESPONSE.error(res, 400, "Invalid status");
+        const validStatuses = ['pending', 'confirmed', 'delivered', 'received', 'cancelled'];
+        const validPaymentStatuses = ['pending', 'completed'];
+        const validDepositStatuses = ['pending', 'received', 'returned'];
+
+        const updates = {};
+
+        if (status) {
+            if (!validStatuses.includes(status)) return RESPONSE.error(res, 400, "Invalid status");
+            updates.status = status;
         }
 
-        const order = await SelectionOrder.findById(req.params.id);
+        if (payment_status) {
+            if (!validPaymentStatuses.includes(payment_status)) return RESPONSE.error(res, 400, "Invalid payment status");
+            updates.payment_status = payment_status;
+        }
+
+        if (deposit_status) {
+            if (!validDepositStatuses.includes(deposit_status)) return RESPONSE.error(res, 400, "Invalid deposit status");
+            updates.deposit_status = deposit_status;
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return RESPONSE.error(res, 400, "No valid fields to update");
+        }
+
+        const order = await SelectionOrder.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true }
+        );
+
         if (!order) {
             return RESPONSE.error(res, 404, "Order not found");
         }
 
-        order.status = status;
-        await order.save();
         RESPONSE.success(res, 200, order);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);

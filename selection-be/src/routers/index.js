@@ -7,6 +7,7 @@ import banners from './banners.js';
 import inquiries from './inquiries.js';
 import payments from './payments.js';
 import orders from './orders.js';
+import selectionOrders from './selectionOrders.js';
 
 import uploadRouter from './upload.js';
 import categoryRouter from './categories.js';
@@ -24,5 +25,6 @@ router.use('/banner', banners);
 router.use('/inquiry', inquiries);
 router.use('/payment', payments);
 router.use('/order', orders); // New Main Order API
+router.use('/selection-order', selectionOrders);
 
 export default router;
