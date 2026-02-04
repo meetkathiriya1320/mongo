@@ -118,7 +118,7 @@ const HomePage = () => {
                         marginTop: "0.5rem",
                       }}
                     >
-                      Shop Now{" "}
+                      Book Now{" "}
                       <ArrowRight size={16} style={{ marginLeft: "8px" }} />
                     </Link>
                   </div>

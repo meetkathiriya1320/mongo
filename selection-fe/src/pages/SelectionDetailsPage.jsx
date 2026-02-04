@@ -81,16 +81,20 @@ const SelectionDetailsPage = () => {
     }
 
     try {
-      const payload = {
+      const itemPayload = {
         selection_id: id,
         deposit: selection.price * 0.5,
         pay: selection.price,
         selectedTopSize: selectedTop,
         selectedBottomSize: selectedBottom,
         selectedColor: selectedColor,
+        deliver_date: startDate,
+        receive_date: endDate,
       };
 
-      await api.post("/booking", payload);
+      // Wrap in items array for the Order API
+      await api.post("/order", { items: [itemPayload] });
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Booking failed");

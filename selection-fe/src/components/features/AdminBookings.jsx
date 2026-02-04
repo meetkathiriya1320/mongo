@@ -1,62 +1,37 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import Button from "../common/Button";
-import { Loader2 } from "lucide-react";
-import classNames from "classnames";
+import { Loader2, Plus, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { showConfirmationToast } from "../../utils/toastUtils";
-
-// ... existing code ...
+import AdminAddBookingModal from "./AdminAddBookingModal";
+import AdminOrderDetailsModal from "./AdminOrderDetailsModal";
 
 const AdminBookings = () => {
-  const [bookings, setBookings] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // View Details State
+  const [viewOrderId, setViewOrderId] = useState(null);
 
   useEffect(() => {
-    fetchBookings();
+    fetchOrders();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchOrders = async () => {
     try {
-      const response = await api.get("/booking");
-      setBookings(response.data.data);
+      const response = await api.get("/order");
+      setOrders(response.data.data);
+    } catch (err) {
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusUpdate = (id, newStatus) => {
-    let action = "Update";
-    if (newStatus === "confirmed") action = "Confirm";
-    else if (newStatus === "delivered") action = "Mark as Delivered";
-    else if (newStatus === "received") action = "Mark as Received";
-
-    showConfirmationToast(`${action} this booking?`, async () => {
-      try {
-        await api.put(`/booking/${id}/status`, { status: newStatus });
-        setBookings((prev) =>
-          prev.map((b) => (b._id === id ? { ...b, status: newStatus } : b)),
-        );
-        toast.success(`Booking ${newStatus}`);
-      } catch (error) {
-        toast.error("Update failed");
-      }
-    });
-  };
-
-  const handleCancel = (id) => {
-    showConfirmationToast("Cancel this booking?", async () => {
-      try {
-        await api.post(`/booking/cancel/${id}`);
-        setBookings((prev) =>
-          prev.map((b) => (b._id === id ? { ...b, status: "cancelled" } : b)),
-        );
-        toast.success("Booking cancelled");
-      } catch (error) {
-        toast.error("Failed to cancel");
-      }
-    });
+  const handleBookingAdded = () => {
+    fetchOrders();
   };
 
   if (loading)
@@ -68,141 +43,101 @@ const AdminBookings = () => {
 
   return (
     <div>
-      <div className="admin-section-header">
-        <h2 className="admin-section-title">All Bookings</h2>
+      <div
+        className="admin-section-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 className="admin-section-title">All Bookings (Grouped)</h2>
+        <Button onClick={() => setShowAddModal(true)} size="sm">
+          <Plus size={16} style={{ marginRight: "6px" }} /> Add Booking
+        </Button>
       </div>
+
+      <AdminAddBookingModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onBookingAdded={handleBookingAdded}
+      />
+
+      <AdminOrderDetailsModal
+        isOpen={!!viewOrderId}
+        onClose={() => setViewOrderId(null)}
+        orderId={viewOrderId}
+      />
 
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Order ID</th>
               <th>User</th>
-              <th>Item</th>
-              <th>Amount</th>
-              <th>Status</th>
+              <th>Items</th>
+              <th>Total Amount</th>
+              <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking._id}>
+            {orders.map((order) => (
+              <tr key={order._id}>
                 <td style={{ color: "var(--text-muted)" }}>
-                  #{booking._id.slice(-6)}
+                  #{order._id.slice(-6)}
                 </td>
                 <td>
                   <div style={{ fontWeight: 500 }}>
-                    {booking.user_id?.name || "Unknown"}
+                    {order.user_id?.name || "Unknown"}
                   </div>
                   <div
                     style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
                   >
-                    {booking.user_id?.email}
+                    {order.user_id?.email}
                   </div>
                 </td>
-                <td>
-                  <div style={{ fontWeight: 500 }}>
-                    {booking.selection_id?.name}
-                  </div>
-                  <div
-                    style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
-                  >
-                    {booking.selectedTopSize && (
-                      <span style={{ marginRight: "6px" }}>
-                        T: {booking.selectedTopSize}
-                      </span>
-                    )}
-                    {booking.selectedBottomSize && (
-                      <span style={{ marginRight: "6px" }}>
-                        B: {booking.selectedBottomSize}
-                      </span>
-                    )}
-                    {booking.selectedColor && (
-                      <span>{booking.selectedColor}</span>
-                    )}
-                  </div>
-                </td>
-                <td style={{ fontWeight: 600 }}>₹{booking.pay}</td>
                 <td>
                   <span
-                    className={classNames(
-                      "status-badge",
-                      `status-${booking.status}`,
-                    )}
+                    style={{
+                      fontWeight: 600,
+                      background: "#f3f4f6",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                      fontSize: "0.85rem",
+                    }}
                   >
-                    {booking.status}
+                    {order.items_count} Items
                   </span>
                 </td>
+                <td style={{ fontWeight: 600 }}>₹{order.total_amount}</td>
+                <td style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                  {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                </td>
                 <td>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    {booking.status === "pending" && (
-                      <Button
-                        size="sm"
-                        style={{
-                          background: "#e0f2fe",
-                          color: "#0369a1",
-                          border: "none",
-                        }}
-                        onClick={() =>
-                          handleStatusUpdate(booking._id, "confirmed")
-                        }
-                      >
-                        Confirm
-                      </Button>
-                    )}
-                    {booking.status === "confirmed" && (
-                      <Button
-                        size="sm"
-                        style={{
-                          background: "#fef3c7",
-                          color: "#b45309",
-                          border: "none",
-                        }}
-                        onClick={() =>
-                          handleStatusUpdate(booking._id, "delivered")
-                        }
-                      >
-                        Deliver
-                      </Button>
-                    )}
-                    {booking.status === "delivered" && (
-                      <Button
-                        size="sm"
-                        style={{
-                          background: "#dcfce7",
-                          color: "#15803d",
-                          border: "none",
-                        }}
-                        onClick={() =>
-                          handleStatusUpdate(booking._id, "received")
-                        }
-                      >
-                        Received
-                      </Button>
-                    )}
-                    {booking.status !== "cancelled" &&
-                      booking.status !== "received" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          style={{ color: "var(--error)" }}
-                          onClick={() => handleCancel(booking._id)}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setViewOrderId(order._id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <Eye size={16} /> View Details
+                  </Button>
                 </td>
               </tr>
             ))}
-            {bookings.length === 0 && (
+            {orders.length === 0 && (
               <tr>
                 <td
                   colSpan="6"
                   className="text-center"
                   style={{ padding: "2rem" }}
                 >
-                  No bookings found.
+                  No orders found.
                 </td>
               </tr>
             )}
