@@ -5,7 +5,11 @@ import { get_message } from '../helpers/messages.js';
 
 export const getSelectionOrders = async (req, res) => {
     try {
-        const orders = await SelectionOrder.find().populate('user_id', 'name email').populate('selection_id');
+        const orders = await SelectionOrder.find()
+            .populate('user_id', 'name email')
+            .populate('selection_id')
+            .sort({ createdAt: -1 });
+
         RESPONSE.success(res, 2101, orders);
     } catch (error) {
         RESPONSE.error(res, 9999, 500, error);
@@ -22,9 +26,16 @@ export const getMyOrders = async (req, res) => {
 };
 
 export const createSelectionOrder = async (req, res) => {
+    let userId = req.user._id;
+
+    // Allow admin to create order for other users
+    if (req.user.role === 'admin' && req.body.user_id) {
+        userId = req.body.user_id;
+    }
+
     const order = new SelectionOrder({
         ...req.body,
-        user_id: req.user._id
+        user_id: userId
     });
     try {
         const newOrder = await order.save();
@@ -65,13 +76,11 @@ export const checkAvailability = async (req, res) => {
             status: { $in: ['pending', 'confirmed', 'delivered', 'received'] }
         });
 
-        const orderIds = orders.map(o => o._id);
-        const details = await SelectionDetails.find({ selection_order_id: { $in: orderIds } });
-
-        const bookedDates = details.map(d => ({
-            from: d.deliver_date,
-            to: d.receive_date
-        }));
+        // Dates are now directly on result order objects
+        const bookedDates = orders.map(o => ({
+            from: o.deliver_date,
+            to: o.receive_date
+        })).filter(d => d.from && d.to);
 
         RESPONSE.success(res, 200, bookedDates);
     } catch (error) {

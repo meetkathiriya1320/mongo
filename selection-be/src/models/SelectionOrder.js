@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const selectionOrderSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' }, // Parent Order reference
     selection_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Selection', required: true },
     SKU: { type: String }, // Optional, for display
     deposit: { type: Number, required: true },
@@ -9,6 +10,8 @@ const selectionOrderSchema = new mongoose.Schema({
     selectedTopSize: { type: String },
     selectedBottomSize: { type: String },
     selectedColor: { type: String },
+    deliver_date: { type: Date },
+    receive_date: { type: Date },
     status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed', 'delivered', 'received'], default: 'pending' },
 }, { timestamps: true });
 

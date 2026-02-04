@@ -6,6 +6,7 @@ import bookings from './bookings.js';
 import banners from './banners.js';
 import inquiries from './inquiries.js';
 import payments from './payments.js';
+import orders from './orders.js';
 
 import uploadRouter from './upload.js';
 import categoryRouter from './categories.js';
@@ -22,5 +23,6 @@ router.use('/booking', bookings);
 router.use('/banner', banners);
 router.use('/inquiry', inquiries);
 router.use('/payment', payments);
+router.use('/order', orders); // New Main Order API
 
 export default router;
