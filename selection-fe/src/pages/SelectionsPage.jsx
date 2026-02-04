@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
-import Card from "../components/common/Card";
-import Button from "../components/common/Button";
-import { motion } from "framer-motion";
-import { Loader2, Filter } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, ChevronRight } from "lucide-react"; // Added standard icons
 import "./SelectionsPage.css";
 
 const SelectionsPage = () => {
   const [selections, setSelections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const currentCategory = searchParams.get("category") || "All";
   const [categories, setCategories] = useState(["All"]);
 
+  // Fetch Categories
   useEffect(() => {
     const getCategories = async () => {
       try {
@@ -28,6 +27,10 @@ const SelectionsPage = () => {
     getCategories();
   }, []);
 
+  // State for sidebar collapse
+  const [isCategoryExpanded, setIsCategoryExpanded] = useState(true);
+
+  // Fetch Selections
   useEffect(() => {
     const fetchSelections = async () => {
       setLoading(true);
@@ -53,121 +56,125 @@ const SelectionsPage = () => {
       searchParams.set("category", category);
     }
     setSearchParams(searchParams);
+    setIsMobileFilterOpen(false); // Close mobile menu on select
+  };
+
+  // Helper to toggle category section
+  const toggleCategories = () => {
+    setIsCategoryExpanded(!isCategoryExpanded);
   };
 
   return (
-    <div className="selections-page container">
-      <div className="selections-header">
-        <div>
-          <h1>Our Collection</h1>
-          <p style={{ color: "var(--text-muted)" }}>
-            Explore our wide range of exclusive wear.
-          </p>
-        </div>
+    <div className="selections-page">
+      <div className="container">
+        {/* Simple Header with Breadcrumb-style feel */}
+        <header className="page-header">
+          <div className="header-text">
+            <h1>Shop Selections</h1>
+            <p>{selections.length} products found</p>
+          </div>
 
-        <div className="filters">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`filter-btn ${currentCategory === cat ? "active" : ""}`}
-            >
-              {cat}
-            </button>
-          ))}
+          {/* Mobile Filter Toggle */}
+          <button
+            className="mobile-filter-toggle"
+            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+          >
+            <SlidersHorizontal size={18} /> Filters
+          </button>
+        </header>
+
+        <div className="shop-layout">
+          {/* Sidebar Filters */}
+          <aside className={`shop-sidebar ${isMobileFilterOpen ? "open" : ""}`}>
+            {/* Collapsible Category Section */}
+            <div className="sidebar-section">
+              <div className="section-header" onClick={toggleCategories}>
+                <h3>Categories</h3>
+                <ChevronRight
+                  size={16}
+                  className={`section-arrow ${isCategoryExpanded ? "rotated" : ""}`}
+                />
+              </div>
+
+              <div
+                className={`section-content ${isCategoryExpanded ? "expanded" : "collapsed"}`}
+              >
+                <ul className="category-list">
+                  {categories.map((cat) => (
+                    <li key={cat}>
+                      <button
+                        onClick={() => handleCategoryChange(cat)}
+                        className={`cat-btn ${currentCategory === cat ? "active" : ""}`}
+                      >
+                        {cat}
+                        {currentCategory === cat && <ChevronRight size={14} />}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="shop-content">
+            {loading ? (
+              <div className="flex-center" style={{ minHeight: "300px" }}>
+                <Loader2 className="animate-spin" size={32} />
+              </div>
+            ) : (
+              <>
+                {selections.length > 0 ? (
+                  <div className="product-grid">
+                    {selections.map((item) => (
+                      <Link
+                        to={`/selections/${item._id}`}
+                        key={item._id}
+                        className="product-card"
+                      >
+                        <div className="img-wrapper">
+                          <img
+                            src={
+                              item.photos?.[0] ||
+                              item.photo ||
+                              "https://via.placeholder.com/400x500"
+                            }
+                            alt={item.name}
+                          />
+                        </div>
+                        <div className="product-details">
+                          <div className="product-meta">
+                            <span className="category-tag">
+                              {item.category}
+                            </span>
+                          </div>
+                          <h3 className="product-title">{item.name}</h3>
+                          <div className="product-footer">
+                            <span className="price">
+                              ₹{item.price.toLocaleString()}
+                            </span>
+                            <button className="btn-view">View</button>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-results">
+                    <p>No products found in this category.</p>
+                    <button
+                      onClick={() => handleCategoryChange("All")}
+                      className="btn-reset"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
         </div>
       </div>
-
-      {loading ? (
-        <div className="flex-center" style={{ padding: "5rem 0" }}>
-          <Loader2 className="animate-spin" color="var(--primary)" size={32} />
-        </div>
-      ) : (
-        <div className="selection-grid">
-          {selections.map((item, index) => (
-            <motion.div
-              key={item._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Link to={`/selections/${item._id}`}>
-                <Card hover style={{ padding: 0, height: "100%" }}>
-                  <div
-                    style={{
-                      aspectRatio: "3/4",
-                      position: "relative",
-                      background: "#f0f0f0",
-                    }}
-                  >
-                    <img
-                      src={
-                        item.photos?.[0] ||
-                        item.photo ||
-                        "https://via.placeholder.com/400x600"
-                      }
-                      alt={item.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        background: "white",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        fontSize: "0.75rem",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {item.category || "Exclusive"}
-                    </div>
-                  </div>
-                  <div className="selection-card-content">
-                    <h3 style={{ fontSize: "1.1rem", marginBottom: "0.25rem" }}>
-                      {item.name}
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--text-muted)",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      SKU: {item.SKU}
-                    </p>
-                    <div className="flex-between">
-                      <span className="selection-price">₹{item.price}</span>
-                      <Button variant="outline" size="sm">
-                        Details
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {!loading && selections.length === 0 && (
-        <div className="empty-state">
-          <Filter size={48} style={{ opacity: 0.2, margin: "0 auto 1rem" }} />
-          <p>No items found in this category.</p>
-          <Button
-            variant="ghost"
-            onClick={() => handleCategoryChange("All")}
-            style={{ marginTop: "1rem" }}
-          >
-            View All
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

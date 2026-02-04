@@ -5,6 +5,7 @@ import Input from "../common/Input";
 import { Loader2, Plus, Trash, X, Star, Edit } from "lucide-react";
 
 import toast from "react-hot-toast";
+import { showConfirmationToast } from "../../utils/toastUtils";
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -56,16 +57,13 @@ const AdminCategories = () => {
     try {
       setSubmitting(true);
       if (isEditing) {
-        const response = await api.put(`/category/${currentId}`, formData);
-        setCategories((prev) =>
-          prev.map((c) => (c._id === currentId ? response.data.data : c)),
-        );
+        await api.put(`/category/${currentId}`, formData);
         toast.success("Category updated");
       } else {
-        const response = await api.post("/category", formData);
-        setCategories([...categories, response.data.data]);
+        await api.post("/category", formData);
         toast.success("Category added");
       }
+      await fetchCategories(); // Refetch to ensure state sync
       resetForm();
     } catch (error) {
       toast.error(isEditing ? "Failed to update" : "Failed to add");
@@ -94,9 +92,7 @@ const AdminCategories = () => {
     try {
       const updated = { ...cat, isFeatured: !cat.isFeatured };
       await api.put(`/category/${cat._id}`, updated);
-      setCategories((prev) =>
-        prev.map((c) => (c._id === cat._id ? updated : c)),
-      );
+      await fetchCategories(); // Refetch to ensure state sync
       toast.success("Status updated");
     } catch (error) {
       toast.error("Failed to update");
@@ -107,7 +103,7 @@ const AdminCategories = () => {
     showConfirmationToast("Delete this category?", async () => {
       try {
         await api.delete(`/category/${id}`);
-        setCategories((prev) => prev.filter((c) => c._id !== id));
+        await fetchCategories(); // Refetch to ensure state sync
         toast.success("Category deleted");
       } catch (error) {
         toast.error("Failed to delete category");

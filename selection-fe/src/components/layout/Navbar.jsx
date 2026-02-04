@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, ShoppingCart } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import Button from "../common/Button";
 import "./Navbar.css";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
+  const { toggleCart, cartItems } = useCart();
   const location = useLocation();
 
   useEffect(() => {
@@ -49,6 +51,43 @@ const Navbar = () => {
         </div>
 
         <div className="nav-actions">
+          {/* Cart Button */}
+          <button
+            className="cart-toggle-btn"
+            onClick={toggleCart}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              position: "relative",
+              color: "var(--text-main)",
+              marginRight: user ? "0.5rem" : "1rem",
+            }}
+          >
+            <ShoppingCart size={22} />
+            {cartItems.length > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-6px",
+                  right: "-8px",
+                  background: "var(--primary)",
+                  color: "white",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  width: "18px",
+                  height: "18px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {cartItems.length}
+              </span>
+            )}
+          </button>
+
           {user ? (
             <div className="flex-center" style={{ gap: "1rem" }}>
               <span

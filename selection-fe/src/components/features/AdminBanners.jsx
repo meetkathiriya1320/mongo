@@ -9,7 +9,59 @@ import { showConfirmationToast } from "../../utils/toastUtils";
 // ... existing code ...
 
 const AdminBanners = () => {
-  // ... existing code ...
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [newBanner, setNewBanner] = useState({ title: "", image: "" });
+
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      const response = await api.get("/banner");
+      setBanners(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch banners");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setUploading(true);
+      const response = await api.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setNewBanner((prev) => ({ ...prev, image: response.data.data.url }));
+      toast.success("Image uploaded");
+    } catch (error) {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    try {
+      setUploading(true);
+      const res = await api.post("/banner", newBanner);
+      setBanners([...banners, res.data.data]);
+      setNewBanner({ title: "", image: "" });
+      toast.success("Banner added");
+    } catch (error) {
+      toast.error("Failed to add banner");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDelete = (id) => {
     showConfirmationToast("Delete this banner?", async () => {

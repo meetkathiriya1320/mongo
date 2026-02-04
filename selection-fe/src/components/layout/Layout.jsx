@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./Navbar";
 import { Outlet } from "react-router-dom";
+import CartDrawer from "../cart/CartDrawer";
 
 const Layout = () => {
   return (
@@ -8,6 +9,7 @@ const Layout = () => {
       style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
     >
       <Navbar />
+      <CartDrawer />
       <main style={{ flexGrow: 1, paddingTop: "var(--header-height)" }}>
         <Outlet />
       </main>

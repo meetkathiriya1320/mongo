@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { X, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
-const AdminOrderDetailsModal = ({ isOpen, onClose, orderId }) => {
+const AdminOrderDetailsModal = ({
+  isOpen,
+  onClose,
+  orderId,
+  isUserView = false,
+}) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +89,7 @@ const AdminOrderDetailsModal = ({ isOpen, onClose, orderId }) => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: isUserView ? "1fr 1fr" : "1fr 1fr 1fr",
                   gap: "1rem",
                   marginBottom: "2rem",
                   background: "#f9fafb",
@@ -91,19 +97,21 @@ const AdminOrderDetailsModal = ({ isOpen, onClose, orderId }) => {
                   borderRadius: "8px",
                 }}
               >
-                <div>
-                  <div
-                    style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
-                  >
-                    User
+                {!isUserView && (
+                  <div>
+                    <div
+                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
+                    >
+                      User
+                    </div>
+                    <div style={{ fontWeight: 600 }}>
+                      {data.order.user_id?.name}
+                    </div>
+                    <div style={{ fontSize: "0.8rem" }}>
+                      {data.order.user_id?.email}
+                    </div>
                   </div>
-                  <div style={{ fontWeight: 600 }}>
-                    {data.order.user_id?.name}
-                  </div>
-                  <div style={{ fontSize: "0.8rem" }}>
-                    {data.order.user_id?.email}
-                  </div>
-                </div>
+                )}
                 <div>
                   <div
                     style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
@@ -134,6 +142,8 @@ const AdminOrderDetailsModal = ({ isOpen, onClose, orderId }) => {
                     <th>Details</th>
                     <th>Dates</th>
                     <th>Status</th>
+                    <th>Payment</th>
+                    <th>Deposit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,9 +210,132 @@ const AdminOrderDetailsModal = ({ isOpen, onClose, orderId }) => {
                         </div>
                       </td>
                       <td>
-                        <span className={`status-badge status-${item.status}`}>
-                          {item.status}
-                        </span>
+                        {isUserView ? (
+                          <span
+                            className={`status-badge status-${item.status}`}
+                          >
+                            {item.status.charAt(0).toUpperCase() +
+                              item.status.slice(1)}
+                          </span>
+                        ) : (
+                          <select
+                            className={`status-badge status-${item.status}`}
+                            value={item.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                // Optimistic update or just fetch
+                                await api.put(
+                                  `/selection-order/${item._id}/status`,
+                                  { status: newStatus },
+                                );
+                                toast.success(`Status updated to ${newStatus}`);
+                                fetchDetails(); // Refresh data
+                              } catch (err) {
+                                toast.error("Failed to update status");
+                              }
+                            }}
+                            style={{
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            {[
+                              "pending",
+                              "confirmed",
+                              "delivered",
+                              "received",
+                              "cancelled",
+                            ].map((s) => (
+                              <option key={s} value={s}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+                      <td>
+                        {isUserView ? (
+                          <span
+                            className={`status-badge status-${item.payment_status || "pending"}`}
+                          >
+                            {item.payment_status
+                              ? item.payment_status.charAt(0).toUpperCase() +
+                                item.payment_status.slice(1)
+                              : "Pending"}
+                          </span>
+                        ) : (
+                          <select
+                            className={`status-badge status-${item.payment_status || "pending"}`}
+                            value={item.payment_status || "pending"}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await api.put(
+                                  `/selection-order/${item._id}/status`,
+                                  { payment_status: newStatus },
+                                );
+                                toast.success(`Payment updated: ${newStatus}`);
+                                fetchDetails();
+                              } catch (err) {
+                                toast.error("Failed to update payment");
+                              }
+                            }}
+                            style={{
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            {["pending", "completed"].map((s) => (
+                              <option key={s} value={s}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+                      <td>
+                        {isUserView ? (
+                          <span
+                            className={`status-badge status-${item.deposit_status || "pending"}`}
+                          >
+                            {item.deposit_status
+                              ? item.deposit_status.charAt(0).toUpperCase() +
+                                item.deposit_status.slice(1)
+                              : "Pending"}
+                          </span>
+                        ) : (
+                          <select
+                            className={`status-badge status-${item.deposit_status || "pending"}`}
+                            value={item.deposit_status || "pending"}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await api.put(
+                                  `/selection-order/${item._id}/status`,
+                                  { deposit_status: newStatus },
+                                );
+                                toast.success(`Deposit updated: ${newStatus}`);
+                                fetchDetails();
+                              } catch (err) {
+                                toast.error("Failed to update deposit");
+                              }
+                            }}
+                            style={{
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            {["pending", "received", "returned"].map((s) => (
+                              <option key={s} value={s}>
+                                {s.charAt(0).toUpperCase() + s.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </td>
                     </tr>
                   ))}

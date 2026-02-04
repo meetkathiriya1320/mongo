@@ -5,6 +5,7 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import Card from "../components/common/Card";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import "./Auth.css";
 
 import toast from "react-hot-toast";
@@ -35,11 +36,15 @@ const RegisterPage = () => {
 
   return (
     <div className="auth-container">
+      <Link to="/" className="auth-back-link">
+        <ArrowLeft size={16} /> Back to Home
+      </Link>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        style={{ width: "100%", maxWidth: "400px" }}
+        style={{ width: "100%", maxWidth: "420px" }}
       >
         <Card className="auth-card">
           <div className="auth-header">
@@ -75,7 +80,8 @@ const RegisterPage = () => {
 
             <Button
               type="submit"
-              style={{ width: "100%" }}
+              variant="primary"
+              style={{ width: "100%", marginTop: "0.5rem" }}
               isLoading={isLoading}
             >
               Sign Up

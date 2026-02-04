@@ -5,6 +5,7 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import Card from "../components/common/Card";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import "./Auth.css";
 
 import toast from "react-hot-toast";
@@ -40,17 +41,21 @@ const LoginPage = () => {
 
   return (
     <div className="auth-container">
+      <Link to="/" className="auth-back-link">
+        <ArrowLeft size={16} /> Back to Home
+      </Link>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="auth-wrapper" // Wrapper for framer motion
-        style={{ width: "100%", maxWidth: "400px" }}
+        className="auth-wrapper"
+        style={{ width: "100%", maxWidth: "420px" }}
       >
         <Card className="auth-card">
           <div className="auth-header">
             <h1>Welcome Back</h1>
-            <p>Sign in to manage your bookings</p>
+            <p>Sign in to manage your bookings and profile</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -73,7 +78,8 @@ const LoginPage = () => {
 
             <Button
               type="submit"
-              style={{ width: "100%" }}
+              variant="primary"
+              style={{ width: "100%", marginTop: "0.5rem" }}
               isLoading={isLoading}
             >
               Sign In
@@ -81,7 +87,7 @@ const LoginPage = () => {
           </form>
 
           <div className="auth-footer">
-            Don't have an account? <Link to="/register">Sign Up</Link>
+            Don't have an account? <Link to="/register">Create an account</Link>
           </div>
         </Card>
       </motion.div>
