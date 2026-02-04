@@ -45,79 +45,89 @@ const DashboardPage = () => {
 
   return (
     <div className="dashboard-page">
-      <div className="dashboard-container">
-        <header className="dashboard-header">
-          <h1 className="dashboard-title">Order History</h1>
+      <div className="dashboard-hero">
+        <div className="container">
+          <h1 className="dashboard-title">My Account</h1>
           <p className="dashboard-subtitle">
-            Welcome back, <strong>{user?.name}</strong>. Here is a history of
-            your booking requests.
+            Welcome, {user?.name}. Manage your curated selections and orders.
           </p>
-        </header>
+        </div>
+      </div>
 
+      <div className="dashboard-container">
         <section>
-          <div className="dashboard-section-title">
-            <History size={20} className="text-primary" />
-            Your Bookings
+          <div className="section-heading-row">
+            <h2 className="section-title">Order History</h2>
+            <Link to="/selections" className="browse-link">
+              Browse New Selections <ChevronRight size={16} />
+            </Link>
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="animate-spin text-primary" size={32} />
+            <div className="loading-state">
+              <Loader2 className="animate-spin text-primary" size={40} />
             </div>
           ) : orders.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon-wrapper">
-                <Package size={28} />
+                <Package size={32} />
               </div>
-              <h3>No bookings yet</h3>
+              <h3>No orders placed yet</h3>
               <p>
-                Start exploring our curated collection and make your first
-                booking today.
+                Your collection awaits. Start your journey with our exclusive
+                pieces.
               </p>
               <Link to="/selections">
-                <Button size="lg">Explore Collection</Button>
+                <Button size="lg" className="explore-btn">
+                  View Collection
+                </Button>
               </Link>
             </div>
           ) : (
             <div className="bookings-list">
               {orders.map((order) => (
                 <div key={order._id} className="booking-card">
+                  <div className="booking-status-strip accent-${order.status}"></div>
                   <div className="booking-info">
-                    <div className="booking-header">
+                    <div className="booking-main-header">
+                      <h3 className="booking-item-name">
+                        {order.items_count} Item
+                        {order.items_count !== 1 ? "s" : ""}
+                      </h3>
                       <span className={`booking-status status-${order.status}`}>
                         {statusLabels[order.status] || order.status}
                       </span>
-                      <span className="booking-id">
-                        Order #{order._id.slice(-6).toUpperCase()}
-                      </span>
                     </div>
 
-                    <h3 className="booking-item-name">
-                      {order.items_count} Item
-                      {order.items_count !== 1 ? "s" : ""}
-                    </h3>
-
-                    <div className="booking-details">
-                      <span className="detail-item">
-                        <Calendar size={14} />
-                        Placed on{" "}
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </span>
-                      <span className="detail-item">
-                        Total:{" "}
-                        <strong>₹{order.total_amount?.toLocaleString()}</strong>
-                      </span>
+                    <div className="booking-details-grid">
+                      <div className="detail-item">
+                        <span className="label">Order ID</span>
+                        <span className="value">
+                          #{order._id.slice(-6).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">Date</span>
+                        <span className="value">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">Total Amount</span>
+                        <span className="value highlight">
+                          ₹{order.total_amount?.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="booking-actions">
                     <Button
                       variant="outline"
-                      size="sm"
+                      className="view-btn"
                       onClick={() => setViewOrderId(order._id)}
                     >
-                      <Eye size={16} style={{ marginRight: "6px" }} /> View
-                      Details
+                      View Details
                     </Button>
                   </div>
                 </div>
@@ -131,7 +141,7 @@ const DashboardPage = () => {
           isOpen={!!viewOrderId}
           onClose={() => setViewOrderId(null)}
           orderId={viewOrderId}
-          isUserView={true} // Optional: Pass flag if we need to hide admin controls like "Update Status"
+          isUserView={true}
         />
       </div>
     </div>

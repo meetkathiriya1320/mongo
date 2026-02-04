@@ -1,6 +1,247 @@
+/* Dashboard.css - Premium User View */
+
 .dashboard-page {
   background-color: #f8f9fa;
-  min-height: calc(100vh - 80px); /* Adjust based on navbar height */
+  min-height: calc(100vh - 80px);
+}
+
+/* Hero Section */
+.dashboard-hero {
+  background: white;
+  padding: 4rem 0 3rem;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.dashboard-title {
+  font-family: "Playfair Display", serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  font-family: "Inter", sans-serif;
+}
+
+.dashboard-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+
+/* Section Header */
+.section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  color: #1e293b;
+  font-weight: 600;
+  margin: 0;
+}
+
+.browse-link {
+  color: #64748b;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.2s;
+}
+
+.browse-link:hover {
+  color: #0f172a;
+}
+
+/* Loading */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.empty-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: #94a3b8;
+}
+
+.explore-btn {
+  margin-top: 1.5rem;
+}
+
+/* Bookings List */
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.booking-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0; /* Subtle border */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  padding: 1.75rem 2rem;
+}
+
+.booking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+/* Info Side */
+.booking-info {
+  flex-grow: 1;
+}
+
+.booking-main-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.booking-item-name {
+  font-family: "Playfair Display", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Status Badges */
+.booking-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.status-confirmed {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.status-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.status-completed {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Details Grid */
+.booking-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.value {
+  font-size: 0.95rem;
+  color: #334155;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+}
+
+.value.highlight {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Actions */
+.booking-actions {
+  padding-left: 2rem;
+  border-left: 1px solid #f1f5f9;
+}
+
+.view-btn {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.view-btn:hover {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .booking-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .booking-actions {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1rem;
+    text-align: right;
+  }
+
+  .booking-details-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .dashboard-container {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import "./AdminOrderDetailsModal.css";
 
 const AdminOrderDetailsModal = ({
   isOpen,
@@ -25,325 +26,232 @@ const AdminOrderDetailsModal = ({
       setData(res.data.data); // { order, items }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (itemId, type, newStatus) => {
+    try {
+      const payload = { [type]: newStatus };
+      await api.put(`/selection-order/${itemId}/status`, payload);
+      toast.success(`${type.replace("_", " ")} updated`);
+      fetchDetails(); // Refresh
+    } catch (err) {
+      toast.error("Failed to update");
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          width: "95%",
-          maxWidth: "800px",
-          maxHeight: "90vh",
-          borderRadius: "8px",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "1px solid #e5e7eb",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
-            Order Details #{orderId.slice(-6)}
+    <div className="modal-overlay">
+      <div className="modal-content order-details-modal">
+        {/* Header */}
+        <div className="modal-header">
+          <h2 className="modal-title">
+            Order Details{" "}
+            <span style={{ color: "#64748b" }}>
+              #{orderId.slice(-6).toUpperCase()}
+            </span>
           </h2>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            <X size={24} />
+          <button onClick={onClose} className="close-btn">
+            <X size={20} />
           </button>
         </div>
 
-        <div style={{ padding: "1.5rem", overflowY: "auto" }}>
+        {/* Body */}
+        <div className="modal-body">
           {loading ? (
-            <div className="flex-center" style={{ padding: "2rem" }}>
-              <Loader2 className="animate-spin" />
+            <div className="loading-state">
+              <Loader2 className="animate-spin" size={32} />
             </div>
           ) : data ? (
             <div>
+              {/* Summary Cards */}
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isUserView ? "1fr 1fr" : "1fr 1fr 1fr",
-                  gap: "1rem",
-                  marginBottom: "2rem",
-                  background: "#f9fafb",
-                  padding: "1rem",
-                  borderRadius: "8px",
-                }}
+                className={`order-summary-grid ${isUserView ? "user-view" : ""}`}
               >
                 {!isUserView && (
-                  <div>
-                    <div
-                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
-                    >
-                      User
-                    </div>
-                    <div style={{ fontWeight: 600 }}>
+                  <div className="summary-card">
+                    <div className="summary-label">User Info</div>
+                    <div className="summary-value">
                       {data.order.user_id?.name}
                     </div>
-                    <div style={{ fontSize: "0.8rem" }}>
+                    <div className="summary-sub">
                       {data.order.user_id?.email}
                     </div>
                   </div>
                 )}
-                <div>
-                  <div
-                    style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
-                  >
-                    Total Amount
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: "1.2rem" }}>
-                    ₹{data.order.total_amount}
+                <div className="summary-card">
+                  <div className="summary-label">Total Amount</div>
+                  <div className="summary-value highlight">
+                    ₹{data.order.total_amount?.toLocaleString()}
                   </div>
                 </div>
-                <div>
-                  <div
-                    style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
-                  >
-                    Items Count
-                  </div>
-                  <div style={{ fontWeight: 600 }}>
-                    {data.order.items_count}
-                  </div>
+                <div className="summary-card">
+                  <div className="summary-label">Total Items</div>
+                  <div className="summary-value">{data.order.items_count}</div>
+                  <div className="summary-sub">Items in this order</div>
                 </div>
               </div>
 
-              <h3 style={{ marginBottom: "1rem" }}>Ordered Items</h3>
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Details</th>
-                    <th>Dates</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Deposit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.items.map((item) => (
-                    <tr key={item._id}>
-                      <td>
-                        <div style={{ fontWeight: 500 }}>
-                          {item.selection_id?.name}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "var(--text-muted)",
-                          }}
-                        >
-                          SKU: {item.selection_id?.SKU}
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: "0.85rem" }}>
-                          {item.selectedTopSize && (
-                            <span
-                              style={{
-                                marginRight: "8px",
-                                background: "#eff6ff",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                              }}
-                            >
-                              T: {item.selectedTopSize}
-                            </span>
-                          )}
-                          {item.selectedBottomSize && (
-                            <span
-                              style={{
-                                marginRight: "8px",
-                                background: "#eff6ff",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
-                              }}
-                            >
-                              B: {item.selectedBottomSize}
-                            </span>
-                          )}
-                          {item.selectedColor && (
-                            <span>{item.selectedColor}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: "0.8rem" }}>
-                          <div>
-                            From:{" "}
-                            {new Date(item.deliver_date).toLocaleDateString(
-                              "en-GB",
-                            )}
-                          </div>
-                          <div>
-                            To:{" "}
-                            {new Date(item.receive_date).toLocaleDateString(
-                              "en-GB",
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {isUserView ? (
-                          <span
-                            className={`status-badge status-${item.status}`}
-                          >
-                            {item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1)}
-                          </span>
-                        ) : (
-                          <select
-                            className={`status-badge status-${item.status}`}
-                            value={item.status}
-                            onChange={async (e) => {
-                              const newStatus = e.target.value;
-                              try {
-                                // Optimistic update or just fetch
-                                await api.put(
-                                  `/selection-order/${item._id}/status`,
-                                  { status: newStatus },
-                                );
-                                toast.success(`Status updated to ${newStatus}`);
-                                fetchDetails(); // Refresh data
-                              } catch (err) {
-                                toast.error("Failed to update status");
-                              }
-                            }}
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {[
-                              "pending",
-                              "confirmed",
-                              "delivered",
-                              "received",
-                              "cancelled",
-                            ].map((s) => (
-                              <option key={s} value={s}>
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </td>
-                      <td>
-                        {isUserView ? (
-                          <span
-                            className={`status-badge status-${item.payment_status || "pending"}`}
-                          >
-                            {item.payment_status
-                              ? item.payment_status.charAt(0).toUpperCase() +
-                                item.payment_status.slice(1)
-                              : "Pending"}
-                          </span>
-                        ) : (
-                          <select
-                            className={`status-badge status-${item.payment_status || "pending"}`}
-                            value={item.payment_status || "pending"}
-                            onChange={async (e) => {
-                              const newStatus = e.target.value;
-                              try {
-                                await api.put(
-                                  `/selection-order/${item._id}/status`,
-                                  { payment_status: newStatus },
-                                );
-                                toast.success(`Payment updated: ${newStatus}`);
-                                fetchDetails();
-                              } catch (err) {
-                                toast.error("Failed to update payment");
-                              }
-                            }}
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {["pending", "completed"].map((s) => (
-                              <option key={s} value={s}>
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </td>
-                      <td>
-                        {isUserView ? (
-                          <span
-                            className={`status-badge status-${item.deposit_status || "pending"}`}
-                          >
-                            {item.deposit_status
-                              ? item.deposit_status.charAt(0).toUpperCase() +
-                                item.deposit_status.slice(1)
-                              : "Pending"}
-                          </span>
-                        ) : (
-                          <select
-                            className={`status-badge status-${item.deposit_status || "pending"}`}
-                            value={item.deposit_status || "pending"}
-                            onChange={async (e) => {
-                              const newStatus = e.target.value;
-                              try {
-                                await api.put(
-                                  `/selection-order/${item._id}/status`,
-                                  { deposit_status: newStatus },
-                                );
-                                toast.success(`Deposit updated: ${newStatus}`);
-                                fetchDetails();
-                              } catch (err) {
-                                toast.error("Failed to update deposit");
-                              }
-                            }}
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {["pending", "received", "returned"].map((s) => (
-                              <option key={s} value={s}>
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </td>
+              {/* Items Table */}
+              <h3 className="items-section-title">Ordered Items</h3>
+              <div className="order-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "25%" }}>Item</th>
+                      <th style={{ width: "15%" }}>Specs</th>
+                      <th style={{ width: "15%" }}>Dates</th>
+                      <th style={{ width: "15%" }}>Order Status</th>
+                      <th style={{ width: "15%" }}>Payment</th>
+                      <th style={{ width: "15%" }}>Deposit</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {data.items.map((item) => (
+                      <tr key={item._id}>
+                        {/* 1. Item Info */}
+                        <td>
+                          <div className="item-name">
+                            {item.selection_id?.name}
+                          </div>
+                          <div className="item-sku">
+                            SKU: {item.selection_id?.SKU}
+                          </div>
+                        </td>
+
+                        {/* 2. Specs */}
+                        <td>
+                          <div className="spec-badges">
+                            {item.selectedTopSize && (
+                              <span className="spec-tag">
+                                T: {item.selectedTopSize}
+                              </span>
+                            )}
+                            {item.selectedBottomSize && (
+                              <span className="spec-tag">
+                                B: {item.selectedBottomSize}
+                              </span>
+                            )}
+                            {item.selectedColor && (
+                              <span className="spec-tag">
+                                {item.selectedColor}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* 3. Dates */}
+                        <td>
+                          <div className="date-info">
+                            <div>
+                              <span className="date-label">From:</span>
+                              {new Date(item.deliver_date).toLocaleDateString(
+                                "en-GB",
+                              )}
+                            </div>
+                            <div>
+                              <span className="date-label">To:</span>
+                              {new Date(item.receive_date).toLocaleDateString(
+                                "en-GB",
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 4. Order Status */}
+                        <td>
+                          {isUserView ? (
+                            <span
+                              className={`status-lock status-${item.status}`}
+                            >
+                              {item.status}
+                            </span>
+                          ) : (
+                            <select
+                              className={`status-select status-${item.status}`}
+                              value={item.status}
+                              onChange={(e) =>
+                                handleStatusUpdate(
+                                  item._id,
+                                  "status",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="confirmed">Confirmed</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="received">Received</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          )}
+                        </td>
+
+                        {/* 5. Payment Status */}
+                        <td>
+                          {isUserView ? (
+                            <span
+                              className={`status-lock status-${item.payment_status || "pending"}`}
+                            >
+                              {item.payment_status || "Pending"}
+                            </span>
+                          ) : (
+                            <select
+                              className={`status-select status-${item.payment_status || "pending"}`}
+                              value={item.payment_status || "pending"}
+                              onChange={(e) =>
+                                handleStatusUpdate(
+                                  item._id,
+                                  "payment_status",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="completed">Completed</option>
+                            </select>
+                          )}
+                        </td>
+
+                        {/* 6. Deposit Status */}
+                        <td>
+                          {isUserView ? (
+                            <span
+                              className={`status-lock status-${item.deposit_status || "pending"}`}
+                            >
+                              {item.deposit_status || "Pending"}
+                            </span>
+                          ) : (
+                            <select
+                              className={`status-select status-${item.deposit_status || "pending"}`}
+                              value={item.deposit_status || "pending"}
+                              onChange={(e) =>
+                                handleStatusUpdate(
+                                  item._id,
+                                  "deposit_status",
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="received">Received</option>
+                              <option value="returned">Returned</option>
+                            </select>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
-            <div>Not found</div>
+            <div className="loading-state">Order not found</div>
           )}
         </div>
       </div>

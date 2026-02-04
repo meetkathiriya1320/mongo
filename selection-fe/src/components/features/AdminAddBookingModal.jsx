@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import Button from "../common/Button";
-import Input from "../common/Input"; // Assuming Input component exists, check path
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Calendar, User } from "lucide-react";
 import toast from "react-hot-toast";
+import "./AdminAddBookingModal.css";
 
 const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
   const [users, setUsers] = useState([]);
@@ -14,7 +14,7 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
   const [selecteduserId, setSelectedUserId] = useState("");
   const [cart, setCart] = useState([]);
 
-  // Current Item State to add to cart
+  // Current Item State
   const [currentItemId, setCurrentItemId] = useState("");
   const [currentTop, setCurrentTop] = useState("");
   const [currentBottom, setCurrentBottom] = useState("");
@@ -27,7 +27,6 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
   useEffect(() => {
     if (isOpen) {
       fetchConfig();
-      // Reset state
       setCart([]);
       setSelectedUserId("");
       resetCurrentItem();
@@ -44,7 +43,7 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
       setUsers(usersRes.data.data || []);
       setSelections(selectionsRes.data.data || []);
     } catch (error) {
-      toast.error("Failed to load users or items");
+      toast.error("Failed to load configuration");
     } finally {
       setLoadingConfig(false);
     }
@@ -63,7 +62,6 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
     if (!currentItemId) return toast.error("Select an item");
     if (!deliverDate || !receiveDate) return toast.error("Select dates");
 
-    // Find selection to validate varieties
     const item = selections.find((s) => s._id === currentItemId);
     if (!item) return;
 
@@ -98,8 +96,6 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
 
     setSubmissionLoading(true);
     try {
-      // Loop create bookings
-      // In a real app you might want a batch API, but loop is fine for now
       for (const item of cart) {
         const payload = {
           user_id: selecteduserId,
@@ -119,7 +115,7 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create some bookings");
+      toast.error("Failed to create bookings");
     } finally {
       setSubmissionLoading(false);
     }
@@ -130,95 +126,31 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
   const currentSelection = selections.find((s) => s._id === currentItemId);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          width: "95%",
-          maxWidth: "800px",
-          maxHeight: "90vh",
-          borderRadius: "8px",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+    <div className="modal-overlay">
+      <div className="modal-content">
         {/* Header */}
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "1px solid #e5e7eb",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>
-            New Admin Booking
-          </h2>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            <X size={24} />
+        <div className="modal-header">
+          <h2 className="modal-title">New Admin Booking</h2>
+          <button onClick={onClose} className="close-btn">
+            <X size={20} />
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1 }}>
+        <div className="modal-body">
           {loadingConfig ? (
-            <div style={{ textAlign: "center", padding: "2rem" }}>
-              Loading...
-            </div>
+            <div className="loading-state">Loading configuration...</div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "2rem",
-              }}
-            >
-              {/* Left Col: Config */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "1rem",
-                }}
-              >
+            <div className="modal-grid">
+              {/* Left: Configuration */}
+              <div className="config-column">
                 {/* 1. User Selection */}
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "0.5rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Select User
-                  </label>
+                <div className="form-group">
+                  <label className="input-label">Select User</label>
                   <select
+                    className="form-select"
                     value={selecteduserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      borderRadius: "6px",
-                      border: "1px solid #ced4da",
-                    }}
                   >
                     <option value="">-- Choose User --</option>
                     {users.map((u) => (
@@ -229,46 +161,24 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
                   </select>
                 </div>
 
-                <hr
-                  style={{ border: "none", borderTop: "1px solid #f3f4f6" }}
-                />
+                <hr className="divider" />
 
-                {/* 2. Add Item Form */}
-                <div
-                  style={{
-                    background: "#f9fafb",
-                    padding: "1rem",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <h3
-                    style={{
-                      marginBottom: "1rem",
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Add Item
-                  </h3>
+                {/* 2. Add Item */}
+                <div className="add-item-box">
+                  <h3 className="box-title">Add Item to Order</h3>
 
-                  <div style={{ marginBottom: "1rem" }}>
+                  <div className="form-group">
                     <select
+                      className="form-select"
                       value={currentItemId}
                       onChange={(e) => {
                         setCurrentItemId(e.target.value);
-                        // Reset vars when item changes
                         setCurrentTop("");
                         setCurrentBottom("");
                         setCurrentColor("");
                       }}
-                      style={{
-                        width: "100%",
-                        padding: "0.6rem",
-                        borderRadius: "6px",
-                        border: "1px solid #ced4da",
-                      }}
                     >
-                      <option value="">-- Select Item --</option>
+                      <option value="">-- Select Selection --</option>
                       {selections.map((s) => (
                         <option key={s._id} value={s._id}>
                           {s.name} (₹{s.price})
@@ -280,23 +190,12 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
                   {currentSelection && (
                     <>
                       {/* Options */}
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "0.5rem",
-                          marginBottom: "1rem",
-                        }}
-                      >
+                      <div className="options-grid">
                         {currentSelection.topSizes?.length > 0 && (
                           <select
+                            className="form-select"
                             value={currentTop}
                             onChange={(e) => setCurrentTop(e.target.value)}
-                            style={{
-                              padding: "0.5rem",
-                              borderRadius: "4px",
-                              border: "1px solid #ced4da",
-                            }}
                           >
                             <option value="">Top Size</option>
                             {currentSelection.topSizes.map((s) => (
@@ -308,13 +207,9 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
                         )}
                         {currentSelection.bottomSizes?.length > 0 && (
                           <select
+                            className="form-select"
                             value={currentBottom}
                             onChange={(e) => setCurrentBottom(e.target.value)}
-                            style={{
-                              padding: "0.5rem",
-                              borderRadius: "4px",
-                              border: "1px solid #ced4da",
-                            }}
                           >
                             <option value="">Bottom Size</option>
                             {currentSelection.bottomSizes.map((s) => (
@@ -326,14 +221,9 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
                         )}
                         {currentSelection.colors?.length > 0 && (
                           <select
+                            className="form-select full-width"
                             value={currentColor}
                             onChange={(e) => setCurrentColor(e.target.value)}
-                            style={{
-                              padding: "0.5rem",
-                              borderRadius: "4px",
-                              border: "1px solid #ced4da",
-                              gridColumn: "span 2",
-                            }}
                           >
                             <option value="">Color</option>
                             {currentSelection.colors.map((s) => (
@@ -346,166 +236,110 @@ const AdminAddBookingModal = ({ isOpen, onClose, onBookingAdded }) => {
                       </div>
 
                       {/* Dates */}
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "0.5rem",
-                          marginBottom: "1rem",
-                        }}
-                      >
-                        <input
-                          type="date"
-                          value={deliverDate}
-                          onChange={(e) => setDeliverDate(e.target.value)}
-                          style={{
-                            padding: "0.5rem",
-                            borderRadius: "4px",
-                            border: "1px solid #ced4da",
-                          }}
-                        />
-                        <input
-                          type="date"
-                          value={receiveDate}
-                          onChange={(e) => setReceiveDate(e.target.value)}
-                          style={{
-                            padding: "0.5rem",
-                            borderRadius: "4px",
-                            border: "1px solid #ced4da",
-                          }}
-                        />
+                      <div className="options-grid">
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              marginBottom: "0.25rem",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            Delivery
+                          </label>
+                          <input
+                            type="date"
+                            className="form-input"
+                            value={deliverDate}
+                            onChange={(e) => setDeliverDate(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            className="input-label"
+                            style={{
+                              marginBottom: "0.25rem",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            Return
+                          </label>
+                          <input
+                            type="date"
+                            className="form-input"
+                            value={receiveDate}
+                            onChange={(e) => setReceiveDate(e.target.value)}
+                          />
+                        </div>
                       </div>
 
                       <Button
                         size="sm"
                         onClick={handleAddItem}
-                        style={{ width: "100%" }}
+                        style={{ width: "100%", marginTop: "0.5rem" }}
                       >
                         <Plus size={16} style={{ marginRight: "4px" }} /> Add to
-                        Order
+                        Cart
                       </Button>
                     </>
                   )}
                 </div>
               </div>
 
-              {/* Right Col: Cart List */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  borderLeft: "1px solid #e5e7eb",
-                  paddingLeft: "2rem",
-                }}
-              >
-                <h3
-                  style={{
-                    marginBottom: "1rem",
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  Items to Book ({cart.length})
-                </h3>
+              {/* Right: Cart */}
+              <div className="cart-column">
+                <div className="cart-header">
+                  <span>Booking Summary</span>
+                  <span className="badge">{cart.length} Items</span>
+                </div>
 
-                <div
-                  style={{ flex: 1, overflowY: "auto", marginBottom: "1rem" }}
-                >
+                <div className="cart-items-wrapper">
                   {cart.length === 0 ? (
-                    <p
-                      style={{
-                        color: "#9ca3af",
-                        fontStyle: "italic",
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      No items added yet.
-                    </p>
+                    <p className="empty-cart-msg">No items added yet.</p>
                   ) : (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      {cart.map((item) => (
-                        <div
-                          key={item.tempId}
-                          style={{
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "6px",
-                            padding: "0.75rem",
-                            position: "relative",
-                          }}
-                        >
-                          <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                            {item.selection.name}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.8rem",
-                              color: "#6b7280",
-                              margin: "0.25rem 0",
-                            }}
-                          >
-                            {item.topSize && `T:${item.topSize} `}
-                            {item.bottomSize && `B:${item.bottomSize} `}
-                            {item.color && `${item.color}`}
-                          </div>
-                          <div
-                            style={{ fontSize: "0.75rem", color: "#9ca3af" }}
-                          >
-                            {item.deliverDate} - {item.receiveDate}
-                          </div>
-                          <div
-                            style={{
-                              fontWeight: 600,
-                              marginTop: "0.25rem",
-                              color: "var(--primary)",
-                              fontSize: "0.9rem",
-                            }}
-                          >
-                            ₹{item.selection.price}
-                          </div>
-                          <button
-                            onClick={() => handleRemoveItem(item.tempId)}
-                            style={{
-                              position: "absolute",
-                              top: "0.5rem",
-                              right: "0.5rem",
-                              color: "#ef4444",
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                    cart.map((item) => (
+                      <div key={item.tempId} className="cart-item-card">
+                        <div className="item-name">{item.selection.name}</div>
+                        <div className="item-specs">
+                          {item.topSize && (
+                            <span className="spec-badge">
+                              T: {item.topSize}
+                            </span>
+                          )}
+                          {item.bottomSize && (
+                            <span className="spec-badge">
+                              B: {item.bottomSize}
+                            </span>
+                          )}
+                          {item.color && (
+                            <span className="spec-badge">{item.color}</span>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                        <div className="item-dates">
+                          {item.deliverDate} {"->"} {item.receiveDate}
+                        </div>
+                        <div className="item-price">
+                          ₹{item.selection.price.toLocaleString()}
+                        </div>
+                        <button
+                          onClick={() => handleRemoveItem(item.tempId)}
+                          className="remove-btn"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
                   )}
                 </div>
 
-                <div
-                  style={{ borderTop: "1px solid #e5e7eb", paddingTop: "1rem" }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "1rem",
-                      fontWeight: 700,
-                    }}
-                  >
-                    <span>Total</span>
+                <div className="cart-footer">
+                  <div className="total-row">
+                    <span>Total Deposit</span>
                     <span>
                       ₹
-                      {cart.reduce(
-                        (sum, item) => sum + item.selection.price,
-                        0,
-                      )}
+                      {cart
+                        .reduce((sum, item) => sum + item.selection.price, 0)
+                        .toLocaleString()}
                     </span>
                   </div>
                   <Button

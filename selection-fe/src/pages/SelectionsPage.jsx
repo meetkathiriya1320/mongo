@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
-import { Loader2, Search, SlidersHorizontal, ChevronRight } from "lucide-react"; // Added standard icons
+import { Search, ChevronRight, ChevronDown } from "lucide-react";
 import "./SelectionsPage.css";
 
 const SelectionsPage = () => {
   const [selections, setSelections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const currentCategory = searchParams.get("category") || "All";
   const [categories, setCategories] = useState(["All"]);
@@ -26,9 +25,6 @@ const SelectionsPage = () => {
     };
     getCategories();
   }, []);
-
-  // State for sidebar collapse
-  const [isCategoryExpanded, setIsCategoryExpanded] = useState(true);
 
   // Fetch Selections
   useEffect(() => {
@@ -49,130 +45,143 @@ const SelectionsPage = () => {
     fetchSelections();
   }, [currentCategory]);
 
-  const handleCategoryChange = (category) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest(".hero-select-wrapper")) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDropdownOpen]);
+
+  const handleCustomCategoryChange = (category) => {
     if (category === "All") {
       searchParams.delete("category");
     } else {
       searchParams.set("category", category);
     }
     setSearchParams(searchParams);
-    setIsMobileFilterOpen(false); // Close mobile menu on select
-  };
-
-  // Helper to toggle category section
-  const toggleCategories = () => {
-    setIsCategoryExpanded(!isCategoryExpanded);
+    setIsDropdownOpen(false);
   };
 
   return (
     <div className="selections-page">
-      <div className="container">
-        {/* Simple Header with Breadcrumb-style feel */}
-        <header className="page-header">
-          <div className="header-text">
-            <h1>Shop Selections</h1>
-            <p>{selections.length} products found</p>
-          </div>
+      {/* Hero Header */}
+      <div className="selections-hero">
+        <div className="container">
+          <div className="hero-content">
+            <h1>Exclusive Collection</h1>
+            <p className="hero-subtitle">
+              Discover our premium range of{" "}
+              {selections.length > 0 ? selections.length : ""} handcrafted
+              ethnic wear.
+            </p>
 
-          {/* Mobile Filter Toggle */}
-          <button
-            className="mobile-filter-toggle"
-            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-          >
-            <SlidersHorizontal size={18} /> Filters
-          </button>
-        </header>
+            {/* Custom Hero Filter Dropdown */}
+            <div className="hero-filter-container">
+              <div className="hero-select-wrapper">
+                <button
+                  className={`hero-custom-trigger ${isDropdownOpen ? "open" : ""}`}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  {currentCategory}
+                  <ChevronDown
+                    size={16}
+                    className={`hero-select-icon ${isDropdownOpen ? "rotate" : ""}`}
+                  />
+                </button>
 
-        <div className="shop-layout">
-          {/* Sidebar Filters */}
-          <aside className={`shop-sidebar ${isMobileFilterOpen ? "open" : ""}`}>
-            {/* Collapsible Category Section */}
-            <div className="sidebar-section">
-              <div className="section-header" onClick={toggleCategories}>
-                <h3>Categories</h3>
-                <ChevronRight
-                  size={16}
-                  className={`section-arrow ${isCategoryExpanded ? "rotated" : ""}`}
-                />
-              </div>
-
-              <div
-                className={`section-content ${isCategoryExpanded ? "expanded" : "collapsed"}`}
-              >
-                <ul className="category-list">
-                  {categories.map((cat) => (
-                    <li key={cat}>
-                      <button
-                        onClick={() => handleCategoryChange(cat)}
-                        className={`cat-btn ${currentCategory === cat ? "active" : ""}`}
+                {isDropdownOpen && (
+                  <div className="hero-custom-options">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat}
+                        className={`hero-option ${currentCategory === cat ? "selected" : ""}`}
+                        onClick={() => handleCustomCategoryChange(cat)}
                       >
                         {cat}
-                        {currentCategory === cat && <ChevronRight size={14} />}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="shop-content">
-            {loading ? (
-              <div className="flex-center" style={{ minHeight: "300px" }}>
-                <Loader2 className="animate-spin" size={32} />
-              </div>
-            ) : (
-              <>
-                {selections.length > 0 ? (
-                  <div className="product-grid">
-                    {selections.map((item) => (
-                      <Link
-                        to={`/selections/${item._id}`}
-                        key={item._id}
-                        className="product-card"
-                      >
-                        <div className="img-wrapper">
-                          <img
-                            src={
-                              item.photos?.[0] ||
-                              item.photo ||
-                              "https://via.placeholder.com/400x500"
-                            }
-                            alt={item.name}
-                          />
-                        </div>
-                        <div className="product-details">
-                          <div className="product-meta">
-                            <span className="category-tag">
-                              {item.category}
-                            </span>
-                          </div>
-                          <h3 className="product-title">{item.name}</h3>
-                          <div className="product-footer">
-                            <span className="price">
-                              ₹{item.price.toLocaleString()}
-                            </span>
-                            <button className="btn-view">View</button>
-                          </div>
-                        </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="no-results">
-                    <p>No products found in this category.</p>
-                    <button
-                      onClick={() => handleCategoryChange("All")}
-                      className="btn-reset"
-                    >
-                      Clear Filters
-                    </button>
-                  </div>
                 )}
-              </>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container main-layout-container">
+        {/* Main Content */}
+        <div className="shop-content-centered">
+          <div className="product-grid">
+            {loading ? (
+              Array.from({ length: 8 }).map((_, idx) => (
+                <div key={idx} className="product-card skeleton-card">
+                  <div className="skeleton-img" />
+                  <div className="skeleton-body">
+                    <div className="skeleton-text short" />
+                    <div className="skeleton-text long" />
+                  </div>
+                </div>
+              ))
+            ) : selections.length > 0 ? (
+              selections.map((item) => (
+                <Link
+                  to={`/selections/${item._id}`}
+                  key={item._id}
+                  className="product-card"
+                >
+                  <div className="img-wrapper">
+                    <img
+                      src={
+                        item.photos?.[0] ||
+                        item.photo ||
+                        "https://via.placeholder.com/400x500"
+                      }
+                      alt={item.name}
+                      loading="lazy"
+                    />
+                    <div className="card-overlay">
+                      <span className="view-btn">View Details</span>
+                    </div>
+                  </div>
+                  <div className="product-info-block">
+                    <span className="category-tag">{item.category}</span>
+                    <h3 className="product-title">{item.name}</h3>
+                    <div className="price-row">
+                      <span className="price">
+                        ₹{item.price.toLocaleString()}
+                      </span>
+                      <div className="action-icon-wrapper">
+                        <ChevronRight size={16} />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="no-results-card">
+                <div className="no-result-icon">
+                  <Search size={40} />
+                </div>
+                <h3>No matches found</h3>
+                <p>Try selecting a different category.</p>
+                <button
+                  onClick={() => {
+                    searchParams.delete("category");
+                    setSearchParams(searchParams);
+                  }}
+                  className="btn-reset"
+                >
+                  View All Items
+                </button>
+              </div>
             )}
-          </main>
+          </div>
         </div>
       </div>
     </div>

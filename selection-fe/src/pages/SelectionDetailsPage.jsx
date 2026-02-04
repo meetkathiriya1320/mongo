@@ -95,138 +95,128 @@ const SelectionDetailsPage = () => {
       : [selection.photo || "https://via.placeholder.com/600x800"];
 
   return (
-    <div className="details-container">
-      <div className="details-wrapper">
-        {/* Left Column: Media */}
-        <div className="product-media">
-          <div className="main-image-frame">
+    <div className="details-page">
+      <div className="details-container">
+        {/* Left Column: Media Gallery */}
+        <div className="media-gallery">
+          <div className="main-image-wrapper">
             <img src={selectedImage} alt={selection.name} />
           </div>
           {photos.length > 1 && (
-            <div className="thumbnail-list">
+            <div className="thumbnail-strip">
               {photos.map((photo, index) => (
-                <div
+                <button
                   key={index}
-                  className={`thumb-item ${selectedImage === photo ? "active" : ""}`}
+                  className={`thumb-btn ${selectedImage === photo ? "active" : ""}`}
                   onClick={() => setSelectedImage(photo)}
                 >
-                  <img src={photo} alt={`Thumb ${index}`} />
-                </div>
+                  <img src={photo} alt={`View ${index + 1}`} />
+                </button>
               ))}
             </div>
           )}
         </div>
 
         {/* Right Column: Info & Actions */}
-        <div className="product-info">
-          <div className="info-header">
-            <p className="product-category">
-              {selection.category || "Collection"}
-            </p>
-            <h1 className="product-name">{selection.name}</h1>
-            <p className="product-sku">SKU: {selection.SKU}</p>
-            <h2 className="product-price">
-              ₹{selection.price.toLocaleString()}
-            </h2>
-          </div>
-
-          <div className="product-description">
-            <p>
-              {selection.description ||
-                "Detailed description not available for this exclusive piece."}
-            </p>
-          </div>
-
-          <div className="divider"></div>
-
-          {/* Variants */}
-          <div className="variant-section">
-            {/* Top Size */}
-            {selection.topSizes?.length > 0 && (
-              <div className="selector-group">
-                <label>
-                  Top Size: <span className="selected-val">{selectedTop}</span>
-                </label>
-                <div className="options-grid">
-                  {selection.topSizes.map((s) => (
-                    <button
-                      key={s}
-                      className={`option-btn ${selectedTop === s ? "selected" : ""}`}
-                      onClick={() => setSelectedTop(s)}
-                    >
-                      {s}
-                    </button>
-                  ))}
+        <div className="product-info-panel">
+          <div className="sticky-info-wrapper">
+            {/* Header */}
+            <div className="info-header">
+              <span className="category-label">
+                {selection.category || "Collection"}
+              </span>
+              <h1 className="product-heading">{selection.name}</h1>
+              <div className="price-sku-row">
+                <div className="price-tag">
+                  ₹{selection.price.toLocaleString()}
                 </div>
+                {selection.SKU && (
+                  <span className="sku-tag">SKU: {selection.SKU}</span>
+                )}
               </div>
-            )}
+            </div>
 
-            {/* Bottom Size */}
-            {selection.bottomSizes?.length > 0 && (
-              <div className="selector-group">
-                <label>
-                  Bottom Size:{" "}
-                  <span className="selected-val">{selectedBottom}</span>
-                </label>
-                <div className="options-grid">
-                  {selection.bottomSizes.map((s) => (
-                    <button
-                      key={s}
-                      className={`option-btn ${selectedBottom === s ? "selected" : ""}`}
-                      onClick={() => setSelectedBottom(s)}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+            <div className="description-text">
+              <p>
+                {selection.description ||
+                  "Crafted with precision, this exclusive piece embodies elegance and tradition. Perfect for special occasions."}
+              </p>
+            </div>
+
+            <div className="divider-line" />
+
+            {/* Booking Module */}
+            <div className="booking-module">
+              {/* Variants */}
+              <div className="variants-container">
+                {selection.topSizes?.length > 0 && (
+                  <div className="variant-group">
+                    <label>Top Size</label>
+                    <div className="chips-grid">
+                      {selection.topSizes.map((s) => (
+                        <button
+                          key={s}
+                          className={`chip-btn ${selectedTop === s ? "selected" : ""}`}
+                          onClick={() => setSelectedTop(s)}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selection.bottomSizes?.length > 0 && (
+                  <div className="variant-group">
+                    <label>Bottom Size</label>
+                    <div className="chips-grid">
+                      {selection.bottomSizes.map((s) => (
+                        <button
+                          key={s}
+                          className={`chip-btn ${selectedBottom === s ? "selected" : ""}`}
+                          onClick={() => setSelectedBottom(s)}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selection.colors?.length > 0 && (
+                  <div className="variant-group">
+                    <label>Color</label>
+                    <div className="chips-grid">
+                      {selection.colors.map((c) => (
+                        <button
+                          key={c}
+                          className={`chip-btn ${selectedColor === c ? "selected" : ""}`}
+                          onClick={() => setSelectedColor(c)}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Color */}
-            {selection.colors?.length > 0 && (
-              <div className="selector-group">
-                <label>
-                  Color: <span className="selected-val">{selectedColor}</span>
-                </label>
-                <div className="options-grid">
-                  {selection.colors.map((c) => (
-                    <button
-                      key={c}
-                      className={`option-btn ${selectedColor === c ? "selected" : ""}`}
-                      onClick={() => setSelectedColor(c)}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+              {/* Actions */}
+              <div className="action-area">
+                {error && (
+                  <div className="error-message">
+                    <AlertCircle size={16} /> {error}
+                  </div>
+                )}
+
+                <Button onClick={handleAddToCart} className="add-to-cart-btn">
+                  <ShoppingBag size={20} /> Add to Cart
+                </Button>
+                <p className="shipping-note">
+                  Free shipping on all orders. Secure checkout.
+                </p>
               </div>
-            )}
-          </div>
-
-          {/* Add to Cart Action */}
-          <div className="booking-actions">
-            {error && (
-              <div className="error-alert">
-                <AlertCircle size={16} /> {error}
-              </div>
-            )}
-
-            <Button
-              onClick={handleAddToCart}
-              style={{
-                width: "100%",
-                marginTop: "1rem",
-                height: "48px",
-                fontSize: "1rem",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <ShoppingBag size={20} /> Add to Cart
-            </Button>
-            <p className="deposit-note">Select your dates at checkout.</p>
+            </div>
           </div>
         </div>
       </div>
